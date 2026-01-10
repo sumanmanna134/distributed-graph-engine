@@ -1,4 +1,4 @@
-# Production-Grade Graph Engine
+# Distributed Graph Engine
 
 A highly scalable, distributed graph processing Engine built with Java 21, Spring Boot, and enterprise-grade distributed systems (Redis, Hazelcast, Neo4j).
 
