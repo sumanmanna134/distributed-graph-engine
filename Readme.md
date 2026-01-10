@@ -13,17 +13,17 @@ This Engine handles **millions of nodes and edges** with:
 
 ## 📋 Table of Contents
 
-- [Architecture](#architecture)
-- [Tech Stack](#tech-stack)
-- [Features](#features)
-- [Quick Start](#quick-start)
-- [API Reference](#api-reference)
-- [Algorithms](#algorithms)
-- [Performance](#performance)
-- [Configuration](#configuration)
-- [Monitoring](#monitoring)
-- [Deployment](#deployment)
-- [Trade-offs](#trade-offs)
+- [Architecture](#-architecture)
+- [Tech Stack](#-tech-stack)
+- [Features](#-features)
+- [Quick Start](#-quick-start)
+- [API Reference](#-api-reference)
+- [Algorithms](#-algorithms)
+- [Performance](#-performance)
+- [Configuration](#-configuration)
+- [Monitoring](#-monitoring)
+- [Deployment](#-deployment)
+- [Trade-offs](#-trade-offs--limitations)
 
 ---
 
