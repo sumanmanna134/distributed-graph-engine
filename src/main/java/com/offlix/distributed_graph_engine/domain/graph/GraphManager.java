@@ -2,26 +2,22 @@ package com.offlix.distributed_graph_engine.domain.graph;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.offlix.distributed_graph_engine.domain.GraphStats.GraphStats;
 import com.offlix.distributed_graph_engine.domain.GraphStats.GraphStatsImpl;
 import com.offlix.distributed_graph_engine.domain.GraphType;
 import com.offlix.distributed_graph_engine.domain.VertexMetadata.VertexMetadata;
 import com.offlix.distributed_graph_engine.domain.VertexMetadata.VertexMetadataImpl;
 import com.offlix.distributed_graph_engine.exception.EdgeAlreadyExist;
+import com.offlix.distributed_graph_engine.exception.NoSuchMethodExistForGraphException;
 import com.offlix.distributed_graph_engine.exception.SelfLoopExistException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -81,7 +77,7 @@ public class GraphManager<T> implements Graph<T>,Serializable {
             if(adjacencyList.putIfAbsent(vertex, new ConcurrentHashMap<>())==null){
                 vertexMetadata.put(vertex, new VertexMetadataImpl());
                 stats.incrementVertexCount();
-                updateVersionWithTimestamp();
+                incrementVersionAndTouch();
             }
 
         }finally {
@@ -109,7 +105,7 @@ public class GraphManager<T> implements Graph<T>,Serializable {
             vertexMetadata.remove(vertex);
             stats.decrementEdgeCount(edgesRemoved);
             stats.decrementVertexCount();
-            updateVersionWithTimestamp();
+            incrementVersionAndTouch();
             return true;
         }finally {
 
@@ -130,7 +126,7 @@ public class GraphManager<T> implements Graph<T>,Serializable {
             }
 
             stats.incrementEdgeCount();
-            updateVersionWithTimestamp();
+            incrementVersionAndTouch();
         }finally {
             lock.writeLock().unlock();
         }
@@ -150,6 +146,10 @@ public class GraphManager<T> implements Graph<T>,Serializable {
     }
 
 
+
+
+
+
     public void addEdge(T source, T destination) {
         addEdge(source, destination, 1.0);
     }
@@ -164,7 +164,7 @@ public class GraphManager<T> implements Graph<T>,Serializable {
             }
             if(isRemoved){
                 stats.decrementEdgeCount();
-                updateVersionWithTimestamp();
+                incrementVersionAndTouch();
 
             }
 
@@ -213,6 +213,113 @@ public class GraphManager<T> implements Graph<T>,Serializable {
     public GraphType getType() {
         return type;
     }
+
+    @Override
+    public Map<Integer, Set<T>> getStronglyConnectedComponents() {
+        lock.readLock().lock();
+        try{
+            if(type==GraphType.UNDIRECTED){
+                throw new NoSuchMethodExistForGraphException(type);
+            }
+
+            Map<Integer, Set<T>> components = new ConcurrentHashMap<>();
+            Set<T> visited = new HashSet<>();
+            Deque<T> stack = new ArrayDeque<>();
+            //first we need to run dfs and store the order in stack
+            //run for each unvisited vertex
+            for(T vertex: adjacencyList.keySet()){
+                if(!visited.contains(vertex)){
+                    fillOrderUsingDFS(vertex,visited, stack);
+                }
+
+            }
+
+            Map<T, Set<T>> reversedGraph = reverseGraph(true);
+
+            visited.clear();
+            int componentId=0;
+
+            while (!stack.isEmpty()){
+                T vertex = stack.pop();
+                if(!visited.contains(vertex)){
+                    Set<T> component = new HashSet<>();
+                    dfsCollectComponent(vertex, component, reversedGraph,visited);
+                    components.put(componentId++, component);
+                }
+            }
+
+
+
+            log.info("Components: {}", components);
+
+
+
+
+
+
+            return null;
+        }catch (Exception ex){
+            log.info("Error: ", ex.getMessage());
+            throw new RuntimeException(ex.getMessage());
+        }finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    private void fillOrderUsingDFS(T vertex, Set<T> visited, Deque<T> stack){
+        visited.add(vertex);
+        for(T neighbor: adjacencyList.get(vertex).keySet()){
+            if(!visited.contains(neighbor)){
+                fillOrderUsingDFS(neighbor, visited, stack);
+            }
+        }
+
+        stack.push(vertex);
+    }
+    private Map<T, Set<T>> reverseGraph(boolean reverse){
+        //A -> B
+        //output will be A-> {}, B -> A
+        //so first we have take one empty map
+        Map<T, Set<T>> reversed = new HashMap<>();
+        //put vertex on this map with empty value
+        for(T vertex: getVertices()){
+            reversed.putIfAbsent(vertex, new HashSet<>());
+        }
+
+        //then iterate each entry, get first value as from, and to, put to -> from
+        for(Map.Entry<T, Map<T, Double>> entry: adjacencyList.entrySet()){
+            T from = entry.getKey();
+            for(T to: entry.getValue().keySet()){
+                if(reverse){
+                    reversed.putIfAbsent(to, new HashSet<>());
+                    reversed.get(to).add(from);
+                }else{
+                    reversed.putIfAbsent(from, new HashSet<>());
+                    reversed.get(from).add(to);
+                }
+
+            }
+        }
+
+        return reversed;
+
+    }
+
+    private void dfsCollectComponent(T vertex, Set<T> component, Map<T, Set<T>> reverseGraph, Set<T> visited){
+        visited.add(vertex);
+        component.add(vertex);
+        for(T neighbor: reverseGraph.getOrDefault(vertex, Set.of())){
+            if(!visited.contains(neighbor)){
+                dfsCollectComponent(neighbor, component, reverseGraph, visited);
+            }
+        }
+    }
+
+
+
+
+
+
 
     private boolean hasCycleDirected(){
         Set<T> visited = new HashSet<>();
@@ -300,20 +407,23 @@ public class GraphManager<T> implements Graph<T>,Serializable {
     }
 
 
+    
 
+     /* =========================
+       Utility
+       ========================= */
 
-
+    private void incrementVersionAndTouch(){
+        this.updatedAt = Instant.now();
+        this.version++;
+        log.info("Graph updated at {} (version {})", updatedAt, version);
+    }
 
     @Override
     public void printGraph() {
-
-    }
-
-
-    private void updateVersionWithTimestamp(){
-        this.updatedAt = Instant.now();
-        this.version++;
-        log.info("Update Log: {updatedAt: {}, version: {}}", updatedAt, version);
+        adjacencyList.forEach((v, edges)->{
+            log.info("{} -> {}", v, edges);
+        });
     }
 
     @Override

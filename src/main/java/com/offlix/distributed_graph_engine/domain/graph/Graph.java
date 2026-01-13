@@ -29,6 +29,10 @@ public interface Graph<T> {
 
     public GraphType getType();
 
+    public Map<Integer, Set<T>> getStronglyConnectedComponents();
+
+
+
     public void printGraph();
 
 }
