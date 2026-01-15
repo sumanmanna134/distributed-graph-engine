@@ -2,14 +2,18 @@ package com.offlix.distributed_graph_engine.graph.operations.cycle;
 
 import com.offlix.distributed_graph_engine.graph.core.GraphContext;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class UndirectedCycleStrategy<T> implements CycleStrategy{
     private final GraphContext<T> context;
+    private final List<List<T>> cycles;
 
     public UndirectedCycleStrategy(GraphContext<T> context) {
         this.context = context;
+        this.cycles = new ArrayList<>();
     }
 
     /**
@@ -38,31 +42,59 @@ public class UndirectedCycleStrategy<T> implements CycleStrategy{
      * </ul>
      */
     @Override
-    public boolean containCycle() {
-        Set<T> visited = new HashSet<>();
-        for(T vertex: context.getVertices()){
-            if(!visited.contains(vertex) && dfs(visited, vertex, null)){
-                return true;
-            }
+    public List<List<T>> findCycles() {
+       cycles.clear();
+       Set<T> visited = new HashSet<>();
+       List<T> path = new ArrayList<>();
+
+       for(T vertex: context.getVertices()){
+           if(!visited.contains(vertex)){
+               dfs(visited, vertex, null, path);
+           }
         }
 
-        return false;
+       return cycles;
     }
 
 
-    private boolean dfs(Set<T> visited, T current, T parent){
+    private boolean dfs(Set<T> visited, T current, T parent, List<T> path){
         visited.add(current);
+        path.add(current);
+        boolean cycleFound = false;
+
         for(T neighbor: context.getNeighbors(current)){
-            if(!visited.contains(neighbor) && dfs(visited, neighbor, parent)){
-                return true;
+            if(neighbor.equals(parent)) continue; // skip the edge back --> parent
+
+            // if it's visited but not the parent and exist in path,
+            if(path.contains(neighbor)){
+                extractCycle(path,neighbor);
+                cycleFound = true;
+
+            }
+            else if(!visited.contains(neighbor) && dfs(visited, neighbor, parent, path)){
+                cycleFound=true;
             }
 
-            //visited but not parent, then cycle formed
-            else if(!neighbor.equals(parent)){
-                return true;
-            }
+
         }
 
-        return false;
+        path.remove(path.size()-1);
+        return cycleFound;
+    }
+
+    private void extractCycle(List<T> path, T neighbor){
+        List<T> cycle = new ArrayList<>();
+        int startIndex = path.indexOf(neighbor);
+        for(int i=startIndex;i<path.size();i++){
+            cycle.add(path.get(i));
+        }
+
+        if(!isDuplicate(cycle)){
+            cycles.add(cycle);
+        }
+    }
+
+    private boolean isDuplicate(List<T> cycle){
+        return cycles.stream().anyMatch(c-> c.containsAll(cycle) && c.size()==cycle.size());
     }
 }

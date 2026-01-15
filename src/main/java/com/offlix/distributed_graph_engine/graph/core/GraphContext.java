@@ -99,4 +99,26 @@ public class GraphContext<T> {
     public Collection<Map<T, Double>> getAllNeighborsWithWeights(){
         return adjacencyList.values();
     }
+
+    public Map<T, Set<T>> reverseGraph(){
+        Map<T, Set<T>> reversed = new HashMap<>();
+        Map<T, Map<T, Double>> reverseGraph = reverseGraphWithWeight();
+        reverseGraph.forEach((from, neighbors)->{
+                neighbors.keySet().forEach(to ->
+                          reversed.computeIfAbsent(from, k-> new HashSet<>()).add(to));
+        });
+        return reversed;
+    }
+
+    public Map<T, Map<T, Double>> reverseGraphWithWeight(){
+        Map<T, Map<T, Double>> reversed = new HashMap<>();
+        adjacencyList.forEach((from, neighbors)->{
+            neighbors.entrySet().forEach(tDoubleEntry ->
+                    reversed.computeIfAbsent(tDoubleEntry.getKey(), k-> new HashMap<>())
+                            .put(from, tDoubleEntry.getValue())
+                    );
+        });
+
+        return reversed;
+    }
 }

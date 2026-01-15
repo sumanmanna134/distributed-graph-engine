@@ -5,11 +5,15 @@ import com.offlix.distributed_graph_engine.graph.core.GraphContext;
 import com.offlix.distributed_graph_engine.graph.core.GraphLock;
 import com.offlix.distributed_graph_engine.graph.operations.CycleDetection;
 import com.offlix.distributed_graph_engine.graph.operations.EdgeOperations;
+import com.offlix.distributed_graph_engine.graph.operations.SccFinder;
 import com.offlix.distributed_graph_engine.graph.operations.VertexOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class GraphManager<T> {
     private static final Logger log = LoggerFactory.getLogger(GraphManager.class);
@@ -19,6 +23,7 @@ public class GraphManager<T> {
 
     private final EdgeOperations<T> edgeOps;
     private final CycleDetection<T> cycleOps;
+    private final SccFinder<T> sccFinder;
 
 
     public GraphManager(GraphType type){
@@ -28,6 +33,7 @@ public class GraphManager<T> {
         this.vertexOps = new VertexOperations<>(context);
         this.edgeOps = new EdgeOperations<>(context, vertexOps);
         this.cycleOps = new CycleDetection<>(context);
+        this.sccFinder = new SccFinder<>(context);
     }
     public GraphManager(){
         this(GraphType.DIRECTED);
@@ -60,10 +66,28 @@ public class GraphManager<T> {
         return formedCycle[0];
      }
 
+     public List<List<T>> findCycles(){
+         final List<List<T>>[] cycles = new List[]{new ArrayList<>()};
+        lock.writeLock(()-> cycles[0] = cycleOps.findCycles());
+        return cycles[0];
+     }
+
     public void printGraph(){
         context.getAdjacencyList().forEach((v, edges)->{
             log.info("{} -> {}", v, edges);
         });
+    }
+
+    public Map<T, Set<T>> reverseGraph(){
+        return context.reverseGraph();
+    }
+
+    public Map<T, Map<T, Double>> reverseGraphWithCost(){
+        return context.reverseGraphWithWeight();
+    }
+
+    public void sccFind(){
+        sccFinder.find();
     }
 
 

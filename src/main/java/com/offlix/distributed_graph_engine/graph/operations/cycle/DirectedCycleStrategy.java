@@ -2,15 +2,14 @@ package com.offlix.distributed_graph_engine.graph.operations.cycle;
 
 import com.offlix.distributed_graph_engine.graph.core.GraphContext;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class DirectedCycleStrategy<T> implements CycleStrategy{
     private final GraphContext<T> context;
+    private List<List<T>> cycles;
     public DirectedCycleStrategy(GraphContext<T> context) {
         this.context = context;
+        this.cycles = new ArrayList<>();
     }
 
     /**
@@ -39,25 +38,34 @@ public class DirectedCycleStrategy<T> implements CycleStrategy{
      * </ul>
      */
     @Override
-    public boolean containCycle() {
+    public List<List<T>> findCycles() {
+        cycles.clear();
         Set<T> visited = new HashSet<>();
-        Deque<T> stack = new ArrayDeque<>();
-        for (T vertex: context.getVertices()){
-            if(!visited.contains(vertex) && dfs(visited, stack, vertex)){
-                return true;
+        LinkedHashSet<T> stack = new LinkedHashSet<>();
+        for(T vertex: context.getVertices()){
+            if(!visited.contains(vertex)){
+                dfs(visited, stack, vertex);
             }
         }
 
-        return true;
-
+        return cycles;
     }
 
-    private boolean dfs(Set<T> visited, Deque<T> stack, T current){
+    private boolean dfs(Set<T> visited, LinkedHashSet<T> stack, T current){
         visited.add(current);
-        stack.push(current);
+        stack.add(current);
         for(T neighbor: context.getNeighbors(current)){
-            if(backEdgeExist(stack, neighbor)) return true; // back edge exist
-            if(!visited.contains(neighbor) && dfs(visited, stack, neighbor)){
+            if(backEdgeExist(stack, neighbor)) {
+                List<T> cycle = new ArrayList<>();
+                boolean startExtracting = false;
+                for(T node: stack){
+                    if(node.equals(neighbor)) startExtracting=true;
+                    if(startExtracting) cycle.add(node);
+                }
+                cycles.add(cycle);
+                return true;
+            }// back edge exist
+            else if(!visited.contains(neighbor) && dfs(visited, stack, neighbor)){
                 return true;
             }
         }
@@ -66,7 +74,7 @@ public class DirectedCycleStrategy<T> implements CycleStrategy{
         return false;
     }
 
-    private boolean backEdgeExist(Deque<T> stack, T neighbor){
+    private boolean backEdgeExist(LinkedHashSet<T> stack, T neighbor){
         return stack.contains(neighbor);
     }
 }

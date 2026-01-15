@@ -20,11 +20,20 @@ public class CycleDetection<T> {
     }
 
     public boolean containCycle(){
+        CycleStrategy<T> strategy = getCycleStrategy();
+        return !strategy.findCycles().isEmpty();
+    }
+
+    public List<List<T>> findCycles(){
+        CycleStrategy<T> strategy = getCycleStrategy();
+        return strategy.findCycles();
+    }
+
+    private CycleStrategy<T> getCycleStrategy() {
         CycleStrategy<T> strategy = strategies.get(context.getType());
         if(strategy==null){
             throw new UnsupportedOperationException("No strategy for type: " + context.getType());
         }
-
-        return strategy.containCycle();
+        return strategy;
     }
 }
