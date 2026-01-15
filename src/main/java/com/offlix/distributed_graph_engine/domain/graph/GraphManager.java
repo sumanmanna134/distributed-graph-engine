@@ -26,6 +26,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 @Builder
 @RequiredArgsConstructor
 @AllArgsConstructor
+@Deprecated
 public class GraphManager<T> implements Graph<T>,Serializable {
     private static final long serialVersionUID=1L;
     @JsonProperty("id")
@@ -70,6 +71,7 @@ public class GraphManager<T> implements Graph<T>,Serializable {
     @JsonProperty("version")
     private int version =1;
 
+    @Deprecated
     @Override
     public void addVertex(T vertex) {
         lock.writeLock().lock();
@@ -86,6 +88,7 @@ public class GraphManager<T> implements Graph<T>,Serializable {
 
     }
 
+    @Deprecated
     @Override
     public boolean removeVertex(T vertex) {
         lock.writeLock().lock();
@@ -113,6 +116,7 @@ public class GraphManager<T> implements Graph<T>,Serializable {
         }
     }
 
+    @Deprecated
     public void addEdge(T source, T destination, double weight) {
         lock.writeLock().lock();
         try{
@@ -132,12 +136,14 @@ public class GraphManager<T> implements Graph<T>,Serializable {
         }
     }
 
+    @Deprecated
     private void checkSelfLoopExist(T source, T destination){
         if(source.equals(destination)){
             throw new SelfLoopExistException("Self-loop is not allowed: " + source);
         }
     }
 
+    @Deprecated(since = "v1")
     private void checkDuplicateEdge(T source, T destination){
         Optional<Map<T, Double>> neighbors = getNeighborsWithWeight(source);
         if(neighbors.isPresent() && neighbors.get().containsKey(destination)){
@@ -145,15 +151,12 @@ public class GraphManager<T> implements Graph<T>,Serializable {
         }
     }
 
-
-
-
-
-
+    @Deprecated(since = "v1")
     public void addEdge(T source, T destination) {
         addEdge(source, destination, 1.0);
     }
 
+    @Deprecated
     @Override
     public boolean removeEdge(T source, T destination) {
         lock.writeLock().lock();
@@ -180,11 +183,13 @@ public class GraphManager<T> implements Graph<T>,Serializable {
         return Optional.ofNullable(adjacencyList.get(vertex));
     }
 
+    @Deprecated
     private boolean removeOneWayEdge(T from, T to){
         Map<T, Double> neighbors = getNeighborsWithWeight(from).get();
         return neighbors!=null && neighbors.remove(to)!=null;
     }
 
+    @Deprecated
     public Set<T> getNeighbors(T vertex){
         return Set.copyOf(adjacencyList.getOrDefault(vertex, Map.of()).keySet());
     }
@@ -264,6 +269,11 @@ public class GraphManager<T> implements Graph<T>,Serializable {
         }finally {
             lock.readLock().unlock();
         }
+    }
+
+    @Override
+    public Map<T, Map<T, Double>> getAdjList() {
+        return adjacencyList;
     }
 
     private void fillOrderUsingDFS(T vertex, Set<T> visited, Deque<T> stack){

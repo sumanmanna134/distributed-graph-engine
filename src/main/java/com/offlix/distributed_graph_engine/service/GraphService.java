@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.offlix.distributed_graph_engine.domain.GraphType;
 import com.offlix.distributed_graph_engine.domain.graph.Graph;
 import com.offlix.distributed_graph_engine.domain.graph.GraphManager;
+import com.offlix.distributed_graph_engine.graph.core.GraphContext;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -31,6 +31,8 @@ public interface Graph<T> {
 
     public Map<Integer, Set<T>> getStronglyConnectedComponents();
 
+    public Map<T, Map<T, Double>> getAdjList();
+
 
 
     public void printGraph();
