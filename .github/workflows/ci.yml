@@ -1,24 +1,18 @@
-# For most projects, this workflow file will not need changing; you simply need
-# to commit it to your repository.
-#
-# You may wish to alter this file to override the set of languages analyzed,
-# or to provide custom queries or build logic.
-#
-# ******** NOTE ********
-# We have attempted to detect the languages in your repository. Please check
-# the `language` matrix defined below to confirm you have the correct set of
-# supported CodeQL languages.
-#
-name: "CodeQL Advanced"
+name: JAVA CI Build and Security
 
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches:
-      - '**'
+      - "**"
   schedule:
     - cron: '36 4 * * 0'
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: write
+  security-events: write
 
 jobs:
   analyze:
@@ -98,3 +92,27 @@ jobs:
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{matrix.language}}"
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up JDK25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+          cache: maven
+      - name: Build and Package with Maven
+        run: mvn -B package --file pom.xml
+
+      - name: Upload JAR Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: >-
+            ${{ github.ref_name == 'main' 
+              && 'distributed-graph-engine'
+              || format('distributed-graph-engine-{0}', github.ref_name)
+            }}
+          path: target/*.jar
+
