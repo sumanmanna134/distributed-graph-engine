@@ -39,9 +39,6 @@ public class DirectedSccFinderStrategy<T> implements SccFinderStrategy<T> {
                 stronglyConnectedComponents.put(componentCount++, components);
             }
         }
-
-        log.info("SCC: {}", stronglyConnectedComponents);
-
         return stronglyConnectedComponents;
 
     }
