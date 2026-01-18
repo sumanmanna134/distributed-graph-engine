@@ -3,7 +3,6 @@ package com.offlix.distributed_graph_engine;
 import com.offlix.distributed_graph_engine.domain.GraphType;
 import com.offlix.distributed_graph_engine.domain.graph.Graph;
 import com.offlix.distributed_graph_engine.graph.GraphManager;
-import com.offlix.distributed_graph_engine.graph.core.GraphContext;
 import com.offlix.distributed_graph_engine.service.GraphService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +20,7 @@ public class GraphController {
     @GetMapping
     public ResponseEntity<?> graph(){
         GraphService<String> graphService = new GraphService<>();
-//        Graph<String> graph = graphService.createGraph("social", "social description", GraphType.UNDIRECTED.name());
+        Graph<String> graph = graphService.createGraph("social", "social description");
 
         GraphManager<String> graphManager = getStringGraphManager();
 
@@ -47,11 +46,11 @@ public class GraphController {
 
 
 
-        return ResponseEntity.ok(adj);
+        return ResponseEntity.ok(graph.getProperties());
     }
 
     private static GraphManager<String> getStringGraphManager() {
-        GraphManager<String> graphManager = new GraphManager<>(GraphType.DIRECTED);
+        GraphManager<String> graphManager = new GraphManager<>(GraphType.UNDIRECTED);
         // 1. Long Distance Hub
         graphManager.addEdgeBetween("DEL", "BLR", 150.0);
 

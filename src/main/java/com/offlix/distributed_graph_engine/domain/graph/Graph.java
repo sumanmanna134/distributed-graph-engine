@@ -1,40 +1,44 @@
 package com.offlix.distributed_graph_engine.domain.graph;
 
-import com.offlix.distributed_graph_engine.domain.GraphType;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.offlix.distributed_graph_engine.graph.core.GraphContext;
+import com.offlix.distributed_graph_engine.util.EngineProperties;
+import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
-public interface Graph<T> {
-    public void addVertex(T vertex);
+@Slf4j
+@Getter
+@Setter
+@Builder
+@RequiredArgsConstructor
+@AllArgsConstructor
+public class Graph<T> implements Serializable {
+    private static final long serialVersionUID=1L;
+    @JsonProperty("id")
+    private Long id;
 
-    public boolean removeVertex(T vertex);
+    @JsonProperty("graphId")
+    private String graphId;
 
-    public void addEdge(T source, T destination, double weight);
+    @JsonProperty("name")
+    private String name;
 
-    public void addEdge(T source, T destination);
+    @JsonProperty("description")
+    private String description;
 
-    public boolean removeEdge(T source, T destination);
-
-
-
-    public Optional<Map<T, Double>> getNeighborsWithWeight(T vertex);
-
-    public Set<T> getNeighbors(T vertex);
-
-    public Set<T> getVertices();
-
-    public boolean hasCycle();
-
-    public GraphType getType();
-
-    public Map<Integer, Set<T>> getStronglyConnectedComponents();
-
-    public Map<T, Map<T, Double>> getAdjList();
+    @JsonProperty("context")
+    @JsonBackReference
+    private GraphContext<T> context;
 
 
-
-    public void printGraph();
-
+    public Map<String, Object> getProperties(){
+        return EngineProperties.getProperties(this.getClass(), new HashSet<>(), List.of("name"));
+    }
 }
+
