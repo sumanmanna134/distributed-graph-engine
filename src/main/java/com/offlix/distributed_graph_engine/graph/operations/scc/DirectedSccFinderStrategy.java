@@ -28,7 +28,7 @@ public class DirectedSccFinderStrategy<T> implements SccFinderStrategy<T> {
         GraphTraversal<T> postOrder = TraversalFactory.getTraversal(TraversalStrategy.DFS_POSTORDER);
         for (T vertex : context.getVertices()) {
             if (!visited.contains(vertex)) {
-                dfsPostOrder(vertex, visited, stack);
+//                dfsPostOrder(vertex, visited, stack);
                 postOrder.traverse(context, vertex, stack::push, visited);
             }
         }
