@@ -6,6 +6,7 @@ import com.offlix.distributed_graph_engine.graph.GraphManager;
 import com.offlix.distributed_graph_engine.service.GraphService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,6 +17,7 @@ import java.util.*;
 public class GraphController {
 
     private static final Logger log = LoggerFactory.getLogger(GraphController.class);
+
 
     @GetMapping
     public ResponseEntity<?> graph(){
@@ -46,7 +48,7 @@ public class GraphController {
 
 
 
-        return ResponseEntity.ok(graph.getProperties());
+        return ResponseEntity.ok(graphManager.reverseGraphWithCost());
     }
 
     private static GraphManager<String> getStringGraphManager() {
@@ -67,6 +69,13 @@ public class GraphController {
         graphManager.addEdgeBetween("HYD", "MAA", 50.0);
         return graphManager;
     }
+
+    @GetMapping("/metadata")
+    public ResponseEntity<?> graphMetadata(){
+        Graph<?> graph = new Graph<>();
+        return ResponseEntity.status(HttpStatus.OK).body(graph.getProperties());
+    }
+
 
 
 }

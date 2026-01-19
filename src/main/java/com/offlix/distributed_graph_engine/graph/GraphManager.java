@@ -7,13 +7,13 @@ import com.offlix.distributed_graph_engine.graph.operations.CycleDetection;
 import com.offlix.distributed_graph_engine.graph.operations.EdgeOperations;
 import com.offlix.distributed_graph_engine.graph.operations.SccFinder;
 import com.offlix.distributed_graph_engine.graph.operations.VertexOperations;
+import com.offlix.distributed_graph_engine.graph.operations.traversal.GraphTraversal;
+import com.offlix.distributed_graph_engine.graph.operations.traversal.TraversalFactory;
+import com.offlix.distributed_graph_engine.graph.operations.traversal.TraversalStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class GraphManager<T> {
     private static final Logger log = LoggerFactory.getLogger(GraphManager.class);
@@ -76,6 +76,19 @@ public class GraphManager<T> {
         context.getAdjacencyList().forEach((v, edges)->{
             log.info("{} -> {}", v, edges);
         });
+    }
+
+    public void traverse(){
+        GraphTraversal<T> traversal = TraversalFactory.getTraversal(TraversalStrategy.BFS_ITERATIVE);
+        Set<T> visited = new HashSet<>();
+        List<T> l = new ArrayList<>();
+        for (T vertex: context.getVertices()){
+            if(!visited.contains(vertex)){
+                traversal.traverse(context, vertex, l::add, visited);
+            }
+        }
+
+        System.out.println(l);
     }
 
     public Map<T, Set<T>> reverseGraph(){
