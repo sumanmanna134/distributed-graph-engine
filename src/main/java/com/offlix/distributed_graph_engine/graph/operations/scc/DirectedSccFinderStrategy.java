@@ -43,8 +43,6 @@ public class DirectedSccFinderStrategy<T> implements SccFinderStrategy<T> {
             T v = stack.pop();
             if (!visited.contains(v)) {
                 Set<T> components = new HashSet<>();
-//                collectComponents(v, visited, components, reverseGraph);
-//                stronglyConnectedComponents.put(componentCount++, components);
                 traversal.traverse(reverseContext, v, node->{
                     if(!visited.contains(node)){
                         visited.add(node);
