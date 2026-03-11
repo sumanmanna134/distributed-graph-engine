@@ -818,9 +818,3 @@ spec:
 Apache License 2.0
 
 ---
-
-## 👥 Contributors
-
-Graph Engine Team - Principal Engineers
-
-For questions: graph-Engine@company.com
