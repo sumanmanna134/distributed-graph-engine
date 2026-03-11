@@ -38,7 +38,7 @@ public class Graph<T> implements Serializable {
 
 
     public Map<String, Object> getProperties(){
-        return EngineProperties.getProperties(this.getClass(), new HashSet<>(), List.of("name"));
+        return EngineProperties.getProperties(this.getClass(), new HashSet<>(), List.of("updatedAt"));
     }
 }
 

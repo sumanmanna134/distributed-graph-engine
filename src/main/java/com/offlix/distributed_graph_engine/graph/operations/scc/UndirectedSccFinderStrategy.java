@@ -1,15 +1,19 @@
 package com.offlix.distributed_graph_engine.graph.operations.scc;
 
-import com.offlix.distributed_graph_engine.domain.GraphType;
 import com.offlix.distributed_graph_engine.graph.core.GraphContext;
+import com.offlix.distributed_graph_engine.graph.operations.traversal.GraphTraversal;
+import com.offlix.distributed_graph_engine.graph.operations.traversal.TraversalFactory;
+import com.offlix.distributed_graph_engine.graph.operations.traversal.TraversalStrategy;
 
 import java.util.*;
 
 public class UndirectedSccFinderStrategy<T> implements SccFinderStrategy<T> {
     private final GraphContext<T> context;
+    private final GraphTraversal<T> traversal;
 
     public UndirectedSccFinderStrategy(GraphContext<T> context) {
         this.context = context;
+        this.traversal = TraversalFactory.getTraversal(TraversalStrategy.DFS_RECURSIVE);
     }
 
     /**
@@ -48,7 +52,8 @@ public class UndirectedSccFinderStrategy<T> implements SccFinderStrategy<T> {
         for (T vertex : context.getVertices()) {
             if (!visited.contains(vertex)) {
                 Set<T> component = new HashSet<>();
-                dfs(visited, vertex, component);
+//                dfs(visited, vertex, component);
+                traversal.traverse(context, vertex, component::add, visited);
                 components.put(componentId++, component);
             }
 
@@ -65,6 +70,7 @@ public class UndirectedSccFinderStrategy<T> implements SccFinderStrategy<T> {
      * @param visited Global set of nodes already processed.
      * @param components The set representing the current component being built.
      */
+    @Deprecated
     private void dfs(Set<T> visited, T vertex, Set<T> components){
         visited.add(vertex);
         components.add(vertex);
