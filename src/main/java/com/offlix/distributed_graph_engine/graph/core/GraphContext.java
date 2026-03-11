@@ -54,8 +54,11 @@ public class GraphContext<T> {
         return adjacencyList.getOrDefault(vertex, Map.of()).keySet();
     }
 
-    public Optional<Map<T, Double>> getNeighborsWithEdgeWeight(T vertex){
-        return Optional.ofNullable(adjacencyList.getOrDefault(vertex, Map.of()));
+    public Optional<Map<T, Double>> getNeighborsWithEdgeWeight(T vertex) {
+        Map<T, Double> neighbors = adjacencyList.get(vertex);
+        return (neighbors == null || neighbors.isEmpty())
+                ? Optional.empty()
+                : Optional.of(neighbors);
     }
 
     public int getEdgeCount(T vertex){
@@ -111,14 +114,19 @@ public class GraphContext<T> {
     }
 
     public Map<T, Map<T, Double>> reverseGraphWithWeight(){
-        Map<T, Map<T, Double>> reversed = new HashMap<>();
-        adjacencyList.forEach((from, neighbors)->{
-            neighbors.entrySet().forEach(tDoubleEntry ->
-                    reversed.computeIfAbsent(tDoubleEntry.getKey(), k-> new HashMap<>())
-                            .put(from, tDoubleEntry.getValue())
-                    );
+        Map<T, Map<T, Double>> reversed = new ConcurrentHashMap<>();
+        adjacencyList.entrySet().parallelStream().forEach(entry->{
+            T from = entry.getKey();
+            entry.getValue().forEach((to, weight)->{
+                reversed.computeIfAbsent(to, k-> new ConcurrentHashMap<>())
+                        .put(from, weight);
+            });
         });
 
         return reversed;
+    }
+
+    public int totalNodes(){
+        return this.adjacencyList.size();
     }
 }

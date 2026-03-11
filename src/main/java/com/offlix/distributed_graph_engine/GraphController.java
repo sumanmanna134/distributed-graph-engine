@@ -26,7 +26,6 @@ public class GraphController {
 
         GraphManager<String> graphManager = getStringGraphManager();
 
-
         log.info("Print: Add");
         graphManager.printGraph();
 
@@ -41,11 +40,6 @@ public class GraphController {
         Map<String, Map<String, Double>> adj = graphManager.reverseGraphWithCost();
 
         graphManager.sccFind();
-
-
-
-
-
 
 
         return ResponseEntity.ok(graphManager.reverseGraphWithCost());

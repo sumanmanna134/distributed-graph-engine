@@ -103,8 +103,4 @@ public class GraphManager<T> {
         Map<Integer, Set<T>> integerSetMap = sccFinder.find();
         log.info("Components: {}", integerSetMap);
     }
-
-
-
-
 }
